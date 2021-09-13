@@ -16,23 +16,32 @@ class WeatherReportViewModel
 @Inject constructor(private val api: WeatherStackApiService) :
     ViewModel() {
 
+    var job: Job? = null
     val weatherStackLiveData = MutableLiveData<WeatherStackData>()
+    val loadingProgressBar = MutableLiveData<Boolean>()
 
     fun getWeatherStackData(city: String) {
-        viewModelScope.launch {
+        job = viewModelScope.launch {
             if (isActive) {
+                loadingProgressBar.value = true
                 val response = api.getWeatherStackData(API_KEY, city)
-//                delay(3000)
+                delay(3000)
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
                         weatherStackLiveData.postValue(response.body())
                         Log.i("ViewModel", "${response.body()}")
                         Log.i("ViewModel", "$response")
+                        loadingProgressBar.value = false
                     } else {
                         Log.i("ViewModel", response.message())
                     }
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        job?.cancel()
     }
 }
