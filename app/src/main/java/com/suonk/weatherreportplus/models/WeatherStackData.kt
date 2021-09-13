@@ -1,6 +1,7 @@
 package com.suonk.weatherreportplus.models
 
 data class WeatherStackData(
-    val currentLocation: CurrentLocation,
-    val currentWeather: CurrentWeather
+    val current: Current,
+    val location: Location,
+    val request: Request
 )

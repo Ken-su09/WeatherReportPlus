@@ -5,8 +5,8 @@ import com.suonk.weatherreportplus.api.WeatherStackApiService.Companion.API_KEY
 
 class WeatherReportRepository constructor(private val weatherStackApiService: WeatherStackApiService) {
 
-    suspend fun getCurrentWeatherByCurrentLocation(city: String) =
-        weatherStackApiService.getCurrentWeatherByCurrentLocation(API_KEY, city)
+    suspend fun getWeatherStackData(city: String) =
+        weatherStackApiService.getWeatherStackData(API_KEY, city)
 
     companion object {
         @Volatile

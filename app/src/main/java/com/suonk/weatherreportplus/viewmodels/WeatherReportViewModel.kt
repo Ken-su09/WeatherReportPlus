@@ -1,8 +1,9 @@
 package com.suonk.weatherreportplus.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.suonk.weatherreportplus.models.CurrentWeather
+import com.suonk.weatherreportplus.models.WeatherStackData
 import com.suonk.weatherreportplus.repositories.WeatherReportRepository
 import kotlinx.coroutines.*
 
@@ -13,22 +14,25 @@ class WeatherReportViewModel constructor(private val repository: WeatherReportRe
     val errorMessage = MutableLiveData<String>()
     val loading = MutableLiveData<Boolean>()
 
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError("Exception handled: ${throwable.localizedMessage}")
     }
 
-    val currentWeather = MutableLiveData<CurrentWeather>()
+    val weatherStackData = MutableLiveData<WeatherStackData>()
 
-    fun getCurrentWeatherByCurrentCity(city: String) {
-        job = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
+    fun getWeatherStackData(city: String) {
+        job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
             if (isActive) {
-                val response = repository.getCurrentWeatherByCurrentLocation(city)
-
-                if (response.isSuccessful) {
-                    currentWeather.postValue(response.body())
-                    loading.value = false
-                } else {
-                    onError("Error : ${response.message()}")
+                val response = repository.getWeatherStackData(city)
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        weatherStackData.postValue(response.body())
+                        Log.i("ViewModel", "${response.body()}")
+                        Log.i("ViewModel", "$response")
+                        loading.value = false
+                    } else {
+                        onError("Error : ${response.message()}")
+                    }
                 }
             }
         }

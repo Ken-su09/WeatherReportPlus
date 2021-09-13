@@ -8,14 +8,15 @@ import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.suonk.weatherreportplus.R
 import com.suonk.weatherreportplus.databinding.ActivityMapsBinding
 import com.suonk.weatherreportplus.utils.InjectorUtils
@@ -42,13 +43,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
         setUpViewModel()
     }
 
@@ -78,18 +77,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 lastLocation = location
 
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
-                getCityFromLatLong(lastLocation.latitude, lastLocation.longitude)
-                placeMarkerOnMap(currentLatLng)
-
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                getCityFromLatLong(lastLocation.latitude, lastLocation.longitude)
             }
         }
-    }
-
-    private fun placeMarkerOnMap(currentLatLong: LatLng) {
-        val markerOptions = MarkerOptions().position(currentLatLong)
-        markerOptions.title("$currentLatLong")
-        mMap.addMarker(markerOptions)
     }
 
     private fun getCityFromLatLong(latitude: Double, longitude: Double) {
@@ -106,10 +97,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getCurrentWeatherByCurrentLocation(address: Address?) {
-        viewModel.getCurrentWeatherByCurrentCity(address!!.locality)
-        viewModel.currentWeather.observe(this, { currentWeather ->
-            Log.i("getCurrentWeather", "${currentWeather.temperature}")
-            Log.i("getCurrentWeather", address.locality)
+        viewModel.getWeatherStackData(address!!.locality)
+//        Log.i("getCurrentWeather", address.locality)
+
+        viewModel.weatherStackData.observe(this, { weatherStackData ->
+            Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
+            Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
+
+            binding.weather.text = "À ${address.locality}, il fait ${weatherStackData.current.temperature} °C"
+        })
+
+        viewModel.errorMessage.observe(this, { message ->
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        })
+
+        viewModel.loading.observe(this, { loadingIsVisible ->
+            binding.progressBar.isVisible = loadingIsVisible
         })
     }
 }
