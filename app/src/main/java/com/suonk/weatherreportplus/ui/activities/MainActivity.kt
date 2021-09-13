@@ -15,7 +15,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         binding.buttonToMaps.setOnClickListener {
             startActivity(Intent(this@MainActivity, MapsActivity::class.java))
         }
