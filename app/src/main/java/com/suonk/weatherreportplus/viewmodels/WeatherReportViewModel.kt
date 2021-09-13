@@ -3,48 +3,36 @@ package com.suonk.weatherreportplus.viewmodels
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.suonk.weatherreportplus.api.WeatherStackApiService
+import com.suonk.weatherreportplus.api.WeatherStackApiService.Companion.API_KEY
 import com.suonk.weatherreportplus.models.WeatherStackData
-import com.suonk.weatherreportplus.repositories.WeatherReportRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
-class WeatherReportViewModel constructor(private val repository: WeatherReportRepository) :
+@HiltViewModel
+class WeatherReportViewModel
+@Inject constructor(private val api: WeatherStackApiService) :
     ViewModel() {
 
-    var job: Job? = null
-    val errorMessage = MutableLiveData<String>()
-    val loading = MutableLiveData<Boolean>()
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        onError("Exception handled: ${throwable.localizedMessage}")
-    }
-
-    val weatherStackData = MutableLiveData<WeatherStackData>()
+    val weatherStackLiveData = MutableLiveData<WeatherStackData>()
 
     fun getWeatherStackData(city: String) {
-        job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
+        viewModelScope.launch {
             if (isActive) {
-                val response = repository.getWeatherStackData(city)
+                val response = api.getWeatherStackData(API_KEY, city)
+//                delay(3000)
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        weatherStackData.postValue(response.body())
+                        weatherStackLiveData.postValue(response.body())
                         Log.i("ViewModel", "${response.body()}")
                         Log.i("ViewModel", "$response")
-                        loading.value = false
                     } else {
-                        onError("Error : ${response.message()}")
+                        Log.i("ViewModel", response.message())
                     }
                 }
             }
         }
-    }
-
-    private fun onError(message: String) {
-        errorMessage.value = message
-        loading.value = false
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        job?.cancel()
     }
 }

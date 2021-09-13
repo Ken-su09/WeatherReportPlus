@@ -1,17 +1,18 @@
 package com.suonk.weatherreportplus.ui.activities
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
-import androidx.core.view.isVisible
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
@@ -19,10 +20,11 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.suonk.weatherreportplus.R
 import com.suonk.weatherreportplus.databinding.ActivityMapsBinding
-import com.suonk.weatherreportplus.utils.InjectorUtils
 import com.suonk.weatherreportplus.viewmodels.WeatherReportViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
+@AndroidEntryPoint
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
@@ -35,7 +37,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val LOCATION_REQUEST_CODE = 1
     }
 
-    private lateinit var viewModel: WeatherReportViewModel
+    private val viewModel: WeatherReportViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +50,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        setUpViewModel()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -70,8 +71,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             )
             return
         }
-        mMap.isMyLocationEnabled = true
 
+        mMap.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
                 lastLocation = location
@@ -79,6 +80,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
                 getCityFromLatLong(lastLocation.latitude, lastLocation.longitude)
+
+//                    Handler(Looper.getMainLooper()).postDelayed({
+//                    }, 4000)
             }
         }
     }
@@ -91,28 +95,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun setUpViewModel() {
-        val factory = InjectorUtils.provideViewModelFactory()
-        viewModel = ViewModelProvider(this, factory)[WeatherReportViewModel::class.java]
-    }
-
     private fun getCurrentWeatherByCurrentLocation(address: Address?) {
         viewModel.getWeatherStackData(address!!.locality)
-//        Log.i("getCurrentWeather", address.locality)
 
-        viewModel.weatherStackData.observe(this, { weatherStackData ->
+        viewModel.weatherStackLiveData.observe(this, { weatherStackData ->
             Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
             Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
-            binding.weather.text = "À ${address.locality}, il fait ${weatherStackData.current.temperature} °C"
-        })
-
-        viewModel.errorMessage.observe(this, { message ->
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-        })
-
-        viewModel.loading.observe(this, { loadingIsVisible ->
-            binding.progressBar.isVisible = loadingIsVisible
+            binding.weather.text =
+                "À ${address.locality}, il fait ${weatherStackData.current.temperature} °C"
         })
     }
 }
