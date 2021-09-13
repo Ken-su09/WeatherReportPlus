@@ -1,12 +1,16 @@
 package com.suonk.weatherreportplus.ui.activities
 
 import android.Manifest
+import android.graphics.drawable.AnimationDrawable
 import android.location.*
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import com.bumptech.glide.Glide
 import com.suonk.weatherreportplus.databinding.ActivityMainBinding
 import com.suonk.weatherreportplus.utils.CheckAndRequestPermissions.checkAndRequestPermission
 import com.suonk.weatherreportplus.viewmodels.WeatherReportViewModel
@@ -44,7 +48,8 @@ class MainActivity : AppCompatActivity() {
 
         trackLocationIfPermissionIsGranted()
 
-        binding.buttonToMaps.setOnClickListener {
+        binding.buttonGetCurrentWeather.setOnClickListener {
+            buttonClickAnimation()
             initProgressBar()
             getLocationManager()
         }
@@ -74,12 +79,20 @@ class MainActivity : AppCompatActivity() {
     private fun getCurrentWeatherByCurrentLocation(address: Address?) {
         viewModel.getWeatherStackData(address!!.locality)
 
+        binding.cityName.text = address.locality
+
         viewModel.weatherStackLiveData.observe(this, { weatherStackData ->
             Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
             Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
-            binding.weather.text =
-                "À ${address.locality}, il fait ${weatherStackData.current.temperature} °C"
+            binding.temperatureValue.text = "${weatherStackData.current.temperature} °C"
+            binding.windValue.text = "${weatherStackData.current.wind_speed} km/h"
+            binding.humidityValue.text = "${weatherStackData.current.humidity} %"
+
+            Glide.with(this)
+                .load(weatherStackData.current.weather_icons[0])
+                .centerCrop()
+                .into(binding.weatherIcon)
         })
     }
 
@@ -95,5 +108,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.loadingProgressBar.observe(this, { isVisible ->
             binding.progressBar.isVisible = isVisible
         })
+    }
+
+    private fun buttonClickAnimation() {
+        val frameAnimation = binding.buttonGetCurrentWeather.drawable as AnimationDrawable
+        frameAnimation.start()
+        Handler(Looper.getMainLooper()).postDelayed({
+            frameAnimation.stop()
+        }, 390)
     }
 }
