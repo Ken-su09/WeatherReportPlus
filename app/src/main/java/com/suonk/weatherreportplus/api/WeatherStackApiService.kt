@@ -13,7 +13,8 @@ interface WeatherStackApiService {
 
     companion object {
         const val BASE_URL = "http://api.weatherstack.com"
-        const val API_KEY = "cae5824328da6d7ce8f7f9a21adeda28"
+        const val API_KEY = "58a14a419e31149fb8ad703a8454efca"
+//        const val API_KEY = "cae5824328da6d7ce8f7f9a21adeda28"
     }
 
     @GET("/current")
