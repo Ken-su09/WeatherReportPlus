@@ -11,6 +11,6 @@ class WeatherReportFlowCoordinator(private val navigator: Navigator) {
     }
 
     fun showWeatherDetails() {
-        navigator.showSplashScreen()
+        navigator.showWeatherDetails()
     }
 }

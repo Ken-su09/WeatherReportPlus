@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import com.suonk.weatherreportplus.R
 import com.suonk.weatherreportplus.ui.fragments.CurrentWeatherFragment
 import com.suonk.weatherreportplus.ui.fragments.SplashScreenFragment
+import com.suonk.weatherreportplus.ui.fragments.WeatherDetailsFragment
 import javax.inject.Inject
 
 class Navigator @Inject constructor(var activity: FragmentActivity?) {
@@ -25,7 +26,7 @@ class Navigator @Inject constructor(var activity: FragmentActivity?) {
     fun showWeatherDetails() {
         activity!!.supportFragmentManager
             .beginTransaction()
-            .replace(R.id.fragment_container_view, SplashScreenFragment())
+            .replace(R.id.fragment_container_view, WeatherDetailsFragment())
             .commit()
     }
 }
