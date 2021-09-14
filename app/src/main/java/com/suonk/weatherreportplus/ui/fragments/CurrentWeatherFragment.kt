@@ -2,7 +2,10 @@ package com.suonk.weatherreportplus.ui.fragments
 
 import android.Manifest
 import android.graphics.drawable.AnimationDrawable
-import android.location.*
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,12 +17,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
 import com.suonk.weatherreportplus.databinding.FragmentCurrentWeatherBinding
 import com.suonk.weatherreportplus.ui.activities.MainActivity
 import com.suonk.weatherreportplus.utils.CheckAndRequestPermissions.checkAndRequestPermission
-import com.suonk.weatherreportplus.viewmodels.WeatherReportViewModel
+import com.suonk.weatherreportplus.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
@@ -45,7 +47,7 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private var cityName = ""
-    private val viewModel: WeatherReportViewModel by activityViewModels()
+    private val viewModel: SharedViewModel by activityViewModels()
     private var binding: FragmentCurrentWeatherBinding? = null
 
     //endregion
@@ -124,7 +126,7 @@ class CurrentWeatherFragment : Fragment() {
         binding!!.cityName.text = "City : $cityName"
         viewModel.setLocationLiveData(cityName)
 
-        viewModel.weatherStackLiveData.observe(this, { weatherStackData ->
+        viewModel.weatherStackLiveData.observe(viewLifecycleOwner, { weatherStackData ->
             Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
             Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
@@ -138,6 +140,7 @@ class CurrentWeatherFragment : Fragment() {
                 .centerCrop()
                 .into(binding!!.weatherIcon)
             binding!!.weatherIcon.visibility = View.VISIBLE
+            binding!!.moreDetailsButton.isVisible = true
         })
     }
 

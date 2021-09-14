@@ -12,7 +12,7 @@ import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltViewModel
-class WeatherReportViewModel
+class SharedViewModel
 @Inject constructor(private val api: WeatherStackApiService) :
     ViewModel() {
 
@@ -44,7 +44,7 @@ class WeatherReportViewModel
     }
 
     fun setLocationLiveData(location: String) {
-        locationLiveData.postValue(location)
+        locationLiveData.value = location
         Log.i("setLocationLiveData", location)
     }
 

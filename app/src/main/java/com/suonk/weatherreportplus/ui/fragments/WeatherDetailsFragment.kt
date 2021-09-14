@@ -12,15 +12,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.suonk.weatherreportplus.databinding.FragmentWeatherDetailsBinding
 import com.suonk.weatherreportplus.ui.activities.MainActivity
 import com.suonk.weatherreportplus.utils.CheckAndRequestPermissions.checkAndRequestPermission
-import com.suonk.weatherreportplus.viewmodels.WeatherReportViewModel
+import com.suonk.weatherreportplus.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
@@ -29,25 +26,8 @@ class WeatherDetailsFragment : Fragment() {
 
     //region ========================================== Val or Var ==========================================
 
-    companion object {
-        private const val REQUEST_LOCATION_PERMISSION = 10100
-    }
-
-    private var locationManager: LocationManager? = null
-
-    private val locationListener: LocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            getCityFromLatLong(location.latitude, location.longitude)
-        }
-
-        override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-        override fun onProviderEnabled(provider: String) {}
-        override fun onProviderDisabled(provider: String) {}
-    }
-
-    private lateinit var binding: FragmentWeatherDetailsBinding
-
-    private val viewModel: WeatherReportViewModel by activityViewModels()
+    private var binding: FragmentWeatherDetailsBinding? = null
+    private val viewModel: SharedViewModel by activityViewModels()
 
     //endregion
 
@@ -56,35 +36,14 @@ class WeatherDetailsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentWeatherDetailsBinding.inflate(inflater, container, false)
-//        initializeUI()
+        initializeUI()
 
-        viewModel.locationLiveData.observe(viewLifecycleOwner, { currentLocation ->
-            Log.i("locationLiveData", currentLocation)
-        })
-
-        return binding.root
+        return binding!!.root
     }
 
     private fun initializeUI() {
-        locationManager =
-            requireActivity().getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager?
-
-        trackLocationIfPermissionIsGranted()
-
-        binding.buttonGetCurrentWeather.setOnClickListener {
-            getWeatherButtonClick()
-        }
+        getCurrentWeatherByCurrentLocation()
         backToCurrentWeatherClick()
-    }
-
-    private fun buttonClickAnimation() {
-        val frameAnimation = binding.buttonGetCurrentWeather.drawable as AnimationDrawable
-        frameAnimation.start()
-        Handler(Looper.getMainLooper()).postDelayed({
-//            binding.buttonGetCurrentWeatherGrey.isVisible = true
-//            binding.buttonGetCurrentWeather.isVisible = false
-            frameAnimation.stop()
-        }, 400)
     }
 
     //endregion
@@ -92,79 +51,93 @@ class WeatherDetailsFragment : Fragment() {
     //region ========================================= Click Button =========================================
 
     private fun backToCurrentWeatherClick() {
-        binding.backToCurrentWeather.setOnClickListener {
+        binding!!.backToCurrentWeather.setOnClickListener {
             (activity as MainActivity).backToCurrentWeather()
         }
-    }
-
-    private fun getWeatherButtonClick() {
-        binding.buttonGetCurrentWeather.setOnClickListener {
-//        binding.buttonGetCurrentWeather.isEnabled = false
-            buttonClickAnimation()
-        }
-
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            binding.buttonGetCurrentWeather.isEnabled = true
-//            binding.buttonGetCurrentWeatherGrey.isVisible = false
-//            binding.buttonGetCurrentWeather.isVisible = true
-//        }, 4000)
     }
 
     //endregion
 
     //region ======================================= Get Weather Data =======================================
 
-    private fun getCurrentWeatherByCurrentLocation(address: Address?) {
-        viewModel.getWeatherStackData(address!!.locality)
+    private fun getCurrentWeatherByCurrentLocation() {
+        viewModel.locationLiveData.observe(requireActivity(), { location ->
+            Log.i("locationLiveData", location)
+            viewModel.getWeatherStackData(location)
+        })
 
-        viewModel.weatherStackLiveData.observe((activity as MainActivity), { weatherStackData ->
-            binding.cityName.text =
+        viewModel.weatherStackLiveData.observe(requireActivity(), { weatherStackData ->
+            binding!!.cityName.text =
                 "${weatherStackData.location.name}, ${weatherStackData.location.country}"
 
-            binding.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
-            binding.temperatureValue.text = "${weatherStackData.current.temperature} °C"
-            binding.windValue.text = "${weatherStackData.current.wind_speed} km/h"
-            binding.humidityValue.text = "${weatherStackData.current.humidity} %"
+            binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
 
-            Glide.with(this)
-                .load(weatherStackData.current.weather_icons[0])
-                .centerCrop()
-                .into(binding.weatherIcon)
-            binding.weatherIcon.visibility = View.VISIBLE
+            // Weather
+            binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
+            binding!!.temperatureValueFeelsLike.text = "${weatherStackData.current.feelslike} °C"
+            binding!!.uvIndexData.text = "${weatherStackData.current.uv_index}"
+
+            // Wind
+            binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
+            binding!!.windDegreeValue.text = "${weatherStackData.current.wind_degree} °"
+            when (weatherStackData.current.wind_dir) {
+                "N" -> {
+                    binding!!.windDirValue.text = "North"
+                }
+                "NNE" -> {
+                    binding!!.windDirValue.text = "North-North-East"
+                }
+                "NE" -> {
+                    binding!!.windDirValue.text = "North-East"
+                }
+                "ENE" -> {
+                    binding!!.windDirValue.text = "East-North-East"
+                }
+                "E" -> {
+                    binding!!.windDirValue.text = "East"
+                }
+                "ESE" -> {
+                    binding!!.windDirValue.text = "East-South-East"
+                }
+                "SE" -> {
+                    binding!!.windDirValue.text = "South-East"
+                }
+                "SSE" -> {
+                    binding!!.windDirValue.text = "South-South-East"
+                }
+                "S" -> {
+                    binding!!.windDirValue.text = "South"
+                }
+                "SSW" -> {
+                    binding!!.windDirValue.text = "South-South-West"
+                }
+                "SW" -> {
+                    binding!!.windDirValue.text = "South-West"
+                }
+                "WSW" -> {
+                    binding!!.windDirValue.text = "West-South-West"
+                }
+                "W" -> {
+                    binding!!.windDirValue.text = "West"
+                }
+                "WNW" -> {
+                    binding!!.windDirValue.text = "West-North-West"
+                }
+                "NW" -> {
+                    binding!!.windDirValue.text = "North-West"
+                }
+                "NNW" -> {
+                    binding!!.windDirValue.text = "North-North-West"
+                }
+            }
+
+            // Rain
+            binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
+            binding!!.precipitationValue.text = "${weatherStackData.current.precip} %"
+            binding!!.cloudCoverValue.text = "${weatherStackData.current.cloudcover} %"
+
+//            binding!!.progressBar.visibility = View.VISIBLE
         })
-    }
-
-    //endregion
-
-    //region ========================================= Get Location =========================================
-
-    private fun getLocationManager() {
-        try {
-            locationManager?.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                0L,
-                0F,
-                locationListener
-            )
-        } catch (ex: SecurityException) {
-            Log.d("myTag", "Security Exception, no location available")
-        }
-    }
-
-    private fun getCityFromLatLong(latitude: Double, longitude: Double) {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        val listOfCitiesName = geocoder.getFromLocation(latitude, longitude, 1)
-        if (listOfCitiesName.size > 0) {
-            getCurrentWeatherByCurrentLocation(listOfCitiesName[0])
-        }
-    }
-
-    private fun trackLocationIfPermissionIsGranted() {
-        requireActivity().checkAndRequestPermission(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            REQUEST_LOCATION_PERMISSION,
-            ::getLocationManager
-        )
     }
 
     //endregion

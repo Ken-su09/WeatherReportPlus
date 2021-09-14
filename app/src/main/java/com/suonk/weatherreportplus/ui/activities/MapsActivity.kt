@@ -1,15 +1,12 @@
 package com.suonk.weatherreportplus.ui.activities
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
@@ -20,7 +17,7 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.suonk.weatherreportplus.R
 import com.suonk.weatherreportplus.databinding.ActivityMapsBinding
-import com.suonk.weatherreportplus.viewmodels.WeatherReportViewModel
+import com.suonk.weatherreportplus.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
@@ -37,7 +34,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val LOCATION_REQUEST_CODE = 1
     }
 
-    private val viewModel: WeatherReportViewModel by viewModels()
+    private val viewModel: SharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
