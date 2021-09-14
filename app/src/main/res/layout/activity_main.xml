@@ -21,6 +21,16 @@
             android:layout_centerVertical="true"
             android:layout_marginEnd="10dp"
             app:srcCompat="@drawable/custom_button_animation" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/button_get_current_weather_grey"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_spin_grey" />
     </RelativeLayout>
 
     <TextView
@@ -35,6 +45,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
+    <TextView
+        android:id="@+id/weather_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Hello World!"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/city_name" />
+
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/weather_icon"
         android:layout_width="250dp"
@@ -42,7 +64,7 @@
         android:layout_marginTop="40dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/city_name"
+        app:layout_constraintTop_toBottomOf="@id/weather_description"
         app:srcCompat="@drawable/ic_cloudy" />
 
     <ProgressBar
@@ -85,7 +107,7 @@
                 android:layout_below="@+id/temperature_title"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="5dp"
-                android:text="32°C"
+                android:text="---"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -113,7 +135,7 @@
                 android:layout_below="@+id/wind_title"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="5dp"
-                android:text="10km/h"
+                android:text="---"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -141,11 +163,19 @@
                 android:layout_below="@+id/humidity_title"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="5dp"
-                android:text="75%"
+                android:text="---"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </RelativeLayout>
     </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="More Details"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/weather_data_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

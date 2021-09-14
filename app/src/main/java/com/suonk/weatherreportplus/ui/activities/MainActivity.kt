@@ -49,9 +49,16 @@ class MainActivity : AppCompatActivity() {
         trackLocationIfPermissionIsGranted()
 
         binding.buttonGetCurrentWeather.setOnClickListener {
+            binding.buttonGetCurrentWeather.isEnabled = false
             buttonClickAnimation()
             initProgressBar()
             getLocationManager()
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                binding.buttonGetCurrentWeather.isEnabled = true
+                binding.buttonGetCurrentWeatherGrey.isVisible = false
+                binding.buttonGetCurrentWeather.isVisible = true
+            }, 4000)
         }
     }
 
@@ -85,6 +92,7 @@ class MainActivity : AppCompatActivity() {
             Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
             Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
+            binding.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
             binding.temperatureValue.text = "${weatherStackData.current.temperature} °C"
             binding.windValue.text = "${weatherStackData.current.wind_speed} km/h"
             binding.humidityValue.text = "${weatherStackData.current.humidity} %"
@@ -114,7 +122,9 @@ class MainActivity : AppCompatActivity() {
         val frameAnimation = binding.buttonGetCurrentWeather.drawable as AnimationDrawable
         frameAnimation.start()
         Handler(Looper.getMainLooper()).postDelayed({
+            binding.buttonGetCurrentWeatherGrey.isVisible = true
+            binding.buttonGetCurrentWeather.isVisible = false
             frameAnimation.stop()
-        }, 390)
+        }, 400)
     }
 }
