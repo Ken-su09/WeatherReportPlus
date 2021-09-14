@@ -18,6 +18,7 @@ class WeatherReportViewModel
 
     var job: Job? = null
     val weatherStackLiveData = MutableLiveData<WeatherStackData>()
+    val locationLiveData = MutableLiveData<String>()
     val loadingProgressBar = MutableLiveData<Boolean>()
 
     fun getWeatherStackData(city: String) {
@@ -36,8 +37,15 @@ class WeatherReportViewModel
                         Log.i("ViewModel", response.message())
                     }
                 }
+
+                job?.cancel()
             }
         }
+    }
+
+    fun setLocationLiveData(location: String) {
+        locationLiveData.postValue(location)
+        Log.i("setLocationLiveData", location)
     }
 
     override fun onCleared() {
