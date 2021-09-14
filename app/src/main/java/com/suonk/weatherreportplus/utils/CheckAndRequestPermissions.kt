@@ -26,7 +26,7 @@ object CheckAndRequestPermissions {
         }
     }
 
-    private fun Activity.requestPermission(manifestPermission: String, requestCode: Int) {
+    fun Activity.requestPermission(manifestPermission: String, requestCode: Int) {
         ActivityCompat.requestPermissions(this, arrayOf(manifestPermission), requestCode)
     }
 }
