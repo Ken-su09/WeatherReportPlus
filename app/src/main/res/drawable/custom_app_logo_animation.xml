@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation1"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation2"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation3"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation4"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation5"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation6"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation7"
+        android:duration="100" />
+    <item
+        android:drawable="@drawable/ic_cloudy_logo_animation8"
+        android:duration="100" />
+</animation-list>
