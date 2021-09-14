@@ -99,7 +99,6 @@ class CurrentWeatherFragment : Fragment() {
     private fun moreDetailsButtonClick() {
         binding!!.moreDetailsButton.setOnClickListener {
             (activity as MainActivity).goToWeatherDetail()
-            Log.i("moreDetailsButtonClick", "${(activity as MainActivity).goToWeatherDetail()}")
         }
     }
 
@@ -121,27 +120,30 @@ class CurrentWeatherFragment : Fragment() {
     //region ======================================= Get Weather Data =======================================
 
     private fun getCurrentWeatherByCurrentLocation(cityName: String) {
-        viewModel.getWeatherStackData(cityName)
+        if (cityName != "") {
+            viewModel.getWeatherStackData(cityName)
 
-        binding!!.cityName.text = "City : $cityName"
-        viewModel.setLocationLiveData(cityName)
+            binding!!.cityName.text = "City : $cityName"
+            viewModel.setLocationLiveData(cityName)
 
-        viewModel.weatherStackLiveData.observe(viewLifecycleOwner, { weatherStackData ->
-            Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
-            Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
+            viewModel.weatherStackLiveData.observe(viewLifecycleOwner, { weatherStackData ->
+                Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
+                Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
-            binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
-            binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
-            binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
-            binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
+                binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
+                binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
+                binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
+                binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
 
-            Glide.with(this)
-                .load(weatherStackData.current.weather_icons[0])
-                .centerCrop()
-                .into(binding!!.weatherIcon)
-            binding!!.weatherIcon.visibility = View.VISIBLE
-            binding!!.moreDetailsButton.isVisible = true
-        })
+                Glide.with(this)
+                    .load(weatherStackData.current.weather_icons[0])
+                    .centerCrop()
+                    .into(binding!!.weatherIcon)
+                binding!!.weatherIcon.visibility = View.VISIBLE
+                binding!!.moreDetailsButton.isVisible = true
+            })
+
+        }
     }
 
     //endregion
@@ -157,7 +159,7 @@ class CurrentWeatherFragment : Fragment() {
                 locationListener
             )
         } catch (ex: SecurityException) {
-            Log.d("myTag", "Security Exception, no location available")
+            Log.d("SecurityException", "Security Exception, no location available")
         }
     }
 
@@ -179,7 +181,7 @@ class CurrentWeatherFragment : Fragment() {
 
     //endregion
 
-    //region ========================================= Get Location =========================================
+    //region ========================================== Lifecycle ===========================================
 
     override fun onDestroyView() {
         super.onDestroyView()

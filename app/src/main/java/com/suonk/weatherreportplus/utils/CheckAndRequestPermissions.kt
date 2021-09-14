@@ -2,6 +2,7 @@ package com.suonk.weatherreportplus.utils
 
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -25,7 +26,7 @@ object CheckAndRequestPermissions {
         }
     }
 
-    fun Activity.requestPermission(manifestPermission: String, requestCode: Int) {
+    private fun Activity.requestPermission(manifestPermission: String, requestCode: Int) {
         ActivityCompat.requestPermissions(this, arrayOf(manifestPermission), requestCode)
     }
 }
