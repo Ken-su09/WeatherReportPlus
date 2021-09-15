@@ -1,11 +1,10 @@
 package com.suonk.weatherreportplus.ui.fragments
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.drawable.AnimationDrawable
 import android.location.Geocoder
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,14 +12,16 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.Glide
+import com.google.android.gms.location.*
 import com.suonk.weatherreportplus.databinding.FragmentCurrentWeatherBinding
 import com.suonk.weatherreportplus.ui.activities.MainActivity
-import com.suonk.weatherreportplus.utils.CheckAndRequestPermissions.checkAndRequestPermission
 import com.suonk.weatherreportplus.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
@@ -31,19 +32,28 @@ class CurrentWeatherFragment : Fragment() {
     //region ========================================== Val or Var ==========================================
 
     companion object {
-        private const val REQUEST_LOCATION_PERMISSION = 10100
+        private const val REQUEST_LOCATION_PERMISSION = 99
     }
 
-    private var locationManager: LocationManager? = null
+    private var fusedLocationProvider: FusedLocationProviderClient? = null
+    private val locationRequest: LocationRequest = LocationRequest.create().apply {
+        interval = 30
+        fastestInterval = 10
+        priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+        maxWaitTime = 60
+    }
 
-    private val locationListener: LocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            getCityFromLatLong(location.latitude, location.longitude)
+    private var locationCallback: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val locationList = locationResult.locations
+            if (locationList.isNotEmpty()) {
+                val location = locationList.last()
+                binding!!.progressBar.isVisible = (binding!!.weatherDescription.text == "")
+                if (cityName == "") {
+                    getCityFromLatLong(location.latitude, location.longitude)
+                }
+            }
         }
-
-        override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-        override fun onProviderEnabled(provider: String) {}
-        override fun onProviderDisabled(provider: String) {}
     }
 
     private var cityName = ""
@@ -64,12 +74,11 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private fun initializeUI() {
-        locationManager =
-            requireActivity().getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager?
-
-        trackLocationIfPermissionIsGranted()
+        fusedLocationProvider = LocationServices.getFusedLocationProviderClient(requireActivity())
+        checkLocationPermission()
 
         binding!!.buttonGetCurrentWeather.setOnClickListener {
+            checkLocationPermission()
             getWeatherButtonClick()
         }
         moreDetailsButtonClick()
@@ -109,9 +118,11 @@ class CurrentWeatherFragment : Fragment() {
         getCurrentWeatherByCurrentLocation(cityName)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            binding!!.buttonGetCurrentWeather.isEnabled = true
-            binding!!.buttonGetCurrentWeatherGrey.isVisible = false
-            binding!!.buttonGetCurrentWeather.isVisible = true
+            if (binding != null) {
+                binding!!.buttonGetCurrentWeather.isEnabled = true
+                binding!!.buttonGetCurrentWeatherGrey.isVisible = false
+                binding!!.buttonGetCurrentWeather.isVisible = true
+            }
         }, 4000)
     }
 
@@ -150,33 +161,114 @@ class CurrentWeatherFragment : Fragment() {
 
     //region ========================================= Get Location =========================================
 
-    private fun getLocationManager() {
-        try {
-            locationManager?.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                0L,
-                0F,
-                locationListener
+    override fun onResume() {
+        super.onResume()
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
-        } catch (ex: SecurityException) {
-            Log.d("SecurityException", "Security Exception, no location available")
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+
+            fusedLocationProvider?.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+
+            fusedLocationProvider?.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    //region ========================================= Get Location =========================================
+
+    private fun checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    (activity as MainActivity),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                requestLocationPermission()
+            } else {
+                requestLocationPermission()
+            }
+        }
+    }
+
+    private fun requestLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ),
+                REQUEST_LOCATION_PERMISSION
+            )
+        } else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_LOCATION_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(
+                            requireActivity(),
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        fusedLocationProvider?.requestLocationUpdates(
+                            locationRequest,
+                            locationCallback,
+                            Looper.getMainLooper()
+                        )
+                    }
+
+                } else {
+                    Toast.makeText(context, "permission denied", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+        }
+    }
+
+    //endregion
+
 
     private fun getCityFromLatLong(latitude: Double, longitude: Double) {
         val geocoder = Geocoder(context, Locale.getDefault())
         val listOfCitiesName = geocoder.getFromLocation(latitude, longitude, 1)
         if (listOfCitiesName.size > 0) {
             cityName = listOfCitiesName[0].locality
+            getCurrentWeatherByCurrentLocation(cityName)
         }
-    }
-
-    private fun trackLocationIfPermissionIsGranted() {
-        requireActivity().checkAndRequestPermission(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            REQUEST_LOCATION_PERMISSION,
-            ::getLocationManager
-        )
     }
 
     //endregion

@@ -17,7 +17,7 @@ class WeatherDetailsFragment : Fragment() {
 
     //region ========================================== Val or Var ==========================================
 
-    private lateinit var binding: FragmentWeatherDetailsBinding
+    private var binding: FragmentWeatherDetailsBinding? = null
     private val viewModel: SharedViewModel by activityViewModels()
 
     //endregion
@@ -29,7 +29,7 @@ class WeatherDetailsFragment : Fragment() {
         binding = FragmentWeatherDetailsBinding.inflate(inflater, container, false)
         initializeUI()
 
-        return binding.root
+        return binding!!.root
     }
 
     private fun initializeUI() {
@@ -42,7 +42,7 @@ class WeatherDetailsFragment : Fragment() {
     //region ========================================= Click Button =========================================
 
     private fun backToCurrentWeatherClick() {
-        binding.backToCurrentWeather.setOnClickListener {
+        binding!!.backToCurrentWeather.setOnClickListener {
             (activity as MainActivity).backToCurrentWeather()
         }
     }
@@ -58,76 +58,77 @@ class WeatherDetailsFragment : Fragment() {
         })
 
         viewModel.weatherStackLiveData.observe(requireActivity(), { weatherStackData ->
-            binding.cityName.text =
-                "${weatherStackData.location.name}, ${weatherStackData.location.country}"
+            if (binding != null) {
+                binding!!.cityName.text =
+                    "${weatherStackData.location.name}, ${weatherStackData.location.country}"
 
-            binding.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
+                binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
 
-            // Weather
-            binding.temperatureValue.text = "${weatherStackData.current.temperature} °C"
-            binding.temperatureValueFeelsLike.text = "${weatherStackData.current.feelslike} °C"
-            binding.uvIndexData.text = "${weatherStackData.current.uv_index}"
+                // Weather
+                binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
+                binding!!.temperatureValueFeelsLike.text =
+                    "${weatherStackData.current.feelslike} °C"
+                binding!!.uvIndexData.text = "${weatherStackData.current.uv_index}"
 
-            // Wind
-            binding.windValue.text = "${weatherStackData.current.wind_speed} km/h"
-            binding.windDegreeValue.text = "${weatherStackData.current.wind_degree} °"
-            when (weatherStackData.current.wind_dir) {
-                "N" -> {
-                    binding.windDirValue.text = "North"
+                // Wind
+                binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
+                binding!!.windDegreeValue.text = "${weatherStackData.current.wind_degree} °"
+                when (weatherStackData.current.wind_dir) {
+                    "N" -> {
+                        binding!!.windDirValue.text = "North"
+                    }
+                    "NNE" -> {
+                        binding!!.windDirValue.text = "North-North-East"
+                    }
+                    "NE" -> {
+                        binding!!.windDirValue.text = "North-East"
+                    }
+                    "ENE" -> {
+                        binding!!.windDirValue.text = "East-North-East"
+                    }
+                    "E" -> {
+                        binding!!.windDirValue.text = "East"
+                    }
+                    "ESE" -> {
+                        binding!!.windDirValue.text = "East-South-East"
+                    }
+                    "SE" -> {
+                        binding!!.windDirValue.text = "South-East"
+                    }
+                    "SSE" -> {
+                        binding!!.windDirValue.text = "South-South-East"
+                    }
+                    "S" -> {
+                        binding!!.windDirValue.text = "South"
+                    }
+                    "SSW" -> {
+                        binding!!.windDirValue.text = "South-South-West"
+                    }
+                    "SW" -> {
+                        binding!!.windDirValue.text = "South-West"
+                    }
+                    "WSW" -> {
+                        binding!!.windDirValue.text = "West-South-West"
+                    }
+                    "W" -> {
+                        binding!!.windDirValue.text = "West"
+                    }
+                    "WNW" -> {
+                        binding!!.windDirValue.text = "West-North-West"
+                    }
+                    "NW" -> {
+                        binding!!.windDirValue.text = "North-West"
+                    }
+                    "NNW" -> {
+                        binding!!.windDirValue.text = "North-North-West"
+                    }
                 }
-                "NNE" -> {
-                    binding.windDirValue.text = "North-North-East"
-                }
-                "NE" -> {
-                    binding.windDirValue.text = "North-East"
-                }
-                "ENE" -> {
-                    binding.windDirValue.text = "East-North-East"
-                }
-                "E" -> {
-                    binding.windDirValue.text = "East"
-                }
-                "ESE" -> {
-                    binding.windDirValue.text = "East-South-East"
-                }
-                "SE" -> {
-                    binding.windDirValue.text = "South-East"
-                }
-                "SSE" -> {
-                    binding.windDirValue.text = "South-South-East"
-                }
-                "S" -> {
-                    binding.windDirValue.text = "South"
-                }
-                "SSW" -> {
-                    binding.windDirValue.text = "South-South-West"
-                }
-                "SW" -> {
-                    binding.windDirValue.text = "South-West"
-                }
-                "WSW" -> {
-                    binding.windDirValue.text = "West-South-West"
-                }
-                "W" -> {
-                    binding.windDirValue.text = "West"
-                }
-                "WNW" -> {
-                    binding.windDirValue.text = "West-North-West"
-                }
-                "NW" -> {
-                    binding.windDirValue.text = "North-West"
-                }
-                "NNW" -> {
-                    binding.windDirValue.text = "North-North-West"
-                }
+
+                // Rain
+                binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
+                binding!!.precipitationValue.text = "${weatherStackData.current.precip} %"
+                binding!!.cloudCoverValue.text = "${weatherStackData.current.cloudcover} %"
             }
-
-            // Rain
-            binding.humidityValue.text = "${weatherStackData.current.humidity} %"
-            binding.precipitationValue.text = "${weatherStackData.current.precip} %"
-            binding.cloudCoverValue.text = "${weatherStackData.current.cloudcover} %"
-
-//            binding.progressBar.visibility = View.VISIBLE
         })
     }
 
@@ -137,7 +138,7 @@ class WeatherDetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-//        binding = null
+        binding = null
     }
 
     //endregion
