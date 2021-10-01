@@ -25,11 +25,11 @@ class WeatherDetailsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         binding = FragmentWeatherDetailsBinding.inflate(inflater, container, false)
         initializeUI()
 
-        return binding!!.root
+        return binding?.root
     }
 
     private fun initializeUI() {
@@ -42,7 +42,7 @@ class WeatherDetailsFragment : Fragment() {
     //region ========================================= Click Button =========================================
 
     private fun backToCurrentWeatherClick() {
-        binding!!.backToCurrentWeather.setOnClickListener {
+        binding?.backToCurrentWeather?.setOnClickListener {
             (activity as MainActivity).backToCurrentWeather()
         }
     }
@@ -53,81 +53,51 @@ class WeatherDetailsFragment : Fragment() {
 
     private fun getCurrentWeatherByCurrentLocation() {
         viewModel.locationLiveData.observe(requireActivity(), { location ->
-            Log.i("locationLiveData", location)
             viewModel.getWeatherStackData(location)
         })
 
         viewModel.weatherStackLiveData.observe(requireActivity(), { weatherStackData ->
             if (binding != null) {
-                binding!!.cityName.text =
+                binding?.cityName?.text =
                     "${weatherStackData.location.name}, ${weatherStackData.location.country}"
 
-                binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
+                binding?.weatherDescription?.text = weatherStackData.current.weather_descriptions[0]
 
                 // Weather
-                binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
-                binding!!.temperatureValueFeelsLike.text =
+                binding?.temperatureValue?.text = "${weatherStackData.current.temperature} °C"
+                binding?.temperatureValueFeelsLike?.text =
                     "${weatherStackData.current.feelslike} °C"
-                binding!!.uvIndexData.text = "${weatherStackData.current.uv_index}"
+                binding?.uvIndexData?.text = "${weatherStackData.current.uv_index}"
 
                 // Wind
-                binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
-                binding!!.windDegreeValue.text = "${weatherStackData.current.wind_degree} °"
-                when (weatherStackData.current.wind_dir) {
-                    "N" -> {
-                        binding!!.windDirValue.text = "North"
-                    }
-                    "NNE" -> {
-                        binding!!.windDirValue.text = "North-North-East"
-                    }
-                    "NE" -> {
-                        binding!!.windDirValue.text = "North-East"
-                    }
-                    "ENE" -> {
-                        binding!!.windDirValue.text = "East-North-East"
-                    }
-                    "E" -> {
-                        binding!!.windDirValue.text = "East"
-                    }
-                    "ESE" -> {
-                        binding!!.windDirValue.text = "East-South-East"
-                    }
-                    "SE" -> {
-                        binding!!.windDirValue.text = "South-East"
-                    }
-                    "SSE" -> {
-                        binding!!.windDirValue.text = "South-South-East"
-                    }
-                    "S" -> {
-                        binding!!.windDirValue.text = "South"
-                    }
-                    "SSW" -> {
-                        binding!!.windDirValue.text = "South-South-West"
-                    }
-                    "SW" -> {
-                        binding!!.windDirValue.text = "South-West"
-                    }
-                    "WSW" -> {
-                        binding!!.windDirValue.text = "West-South-West"
-                    }
-                    "W" -> {
-                        binding!!.windDirValue.text = "West"
-                    }
-                    "WNW" -> {
-                        binding!!.windDirValue.text = "West-North-West"
-                    }
-                    "NW" -> {
-                        binding!!.windDirValue.text = "North-West"
-                    }
-                    "NNW" -> {
-                        binding!!.windDirValue.text = "North-North-West"
-                    }
-                }
+                binding?.windValue?.text = "${weatherStackData.current.wind_speed} km/h"
+                binding?.windDegreeValue?.text = "${weatherStackData.current.wind_degree} °"
+
+                val windDirectionMap = mapOf(
+                    "N" to "North",
+                    "NNE" to "North-North-East",
+                    "NE" to "North-East",
+                    "ENE" to "East-North-East",
+                    "E" to "East",
+                    "ESE" to "East-South-East",
+                    "SE" to "South-East",
+                    "SSE" to "South-South-East",
+                    "S" to "South",
+                    "SSW" to "South-South-West",
+                    "SW" to "South-West",
+                    "WSW" to "West-South-West",
+                    "W" to "West",
+                    "WNW" to "West-North-West",
+                    "NW" to "North-West",
+                    "NNW" to "North-North-West",
+                )
+
+                binding?.windDirValue?.text = windDirectionMap[weatherStackData.current.wind_dir]
 
                 // Rain
-                binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
-                binding!!.precipitationValue.text = "${weatherStackData.current.precip} %"
-                binding!!.cloudCoverValue.text = "${weatherStackData.current.cloudcover} %"
+                binding?.humidityValue?.text = "${weatherStackData.current.humidity} %"
+                binding?.precipitationValue?.text = "${weatherStackData.current.precip} %"
+                binding?.cloudCoverValue?.text = "${weatherStackData.current.cloudcover} %"
             }
         })
     }
