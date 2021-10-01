@@ -24,6 +24,10 @@ import com.suonk.weatherreportplus.databinding.FragmentCurrentWeatherBinding
 import com.suonk.weatherreportplus.ui.activities.MainActivity
 import com.suonk.weatherreportplus.viewmodels.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 
 @AndroidEntryPoint
@@ -36,6 +40,7 @@ class CurrentWeatherFragment : Fragment() {
     }
 
     private var fusedLocationProvider: FusedLocationProviderClient? = null
+
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
         interval = 30
         fastestInterval = 10
@@ -48,7 +53,7 @@ class CurrentWeatherFragment : Fragment() {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
                 val location = locationList.last()
-                binding!!.progressBar.isVisible = (binding!!.weatherDescription.text == "")
+                binding?.progressBar?.isVisible = (binding?.weatherDescription?.text == "")
                 if (cityName == "") {
                     getCityFromLatLong(location.latitude, location.longitude)
                 }
@@ -67,17 +72,17 @@ class CurrentWeatherFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         binding = FragmentCurrentWeatherBinding.inflate(inflater, container, false)
         initializeUI()
-        return binding!!.root
+        return binding?.root
     }
 
     private fun initializeUI() {
         fusedLocationProvider = LocationServices.getFusedLocationProviderClient(requireActivity())
         checkLocationPermission()
 
-        binding!!.buttonGetCurrentWeather.setOnClickListener {
+        binding?.buttonGetCurrentWeather?.setOnClickListener {
             checkLocationPermission()
             getWeatherButtonClick()
         }
@@ -86,17 +91,17 @@ class CurrentWeatherFragment : Fragment() {
 
     private fun initProgressBar() {
         viewModel.loadingProgressBar.observe(viewLifecycleOwner, { isVisible ->
-            binding!!.progressBar.isVisible = isVisible
-            binding!!.weatherIcon.isVisible = !isVisible
+            binding?.progressBar?.isVisible = isVisible
+            binding?.weatherIcon?.isVisible = !isVisible
         })
     }
 
     private fun buttonClickAnimation() {
-        val frameAnimation = binding!!.buttonGetCurrentWeather.drawable as AnimationDrawable
+        val frameAnimation = binding?.buttonGetCurrentWeather?.drawable as AnimationDrawable
         frameAnimation.start()
         Handler(Looper.getMainLooper()).postDelayed({
-            binding!!.buttonGetCurrentWeatherGrey.isVisible = true
-            binding!!.buttonGetCurrentWeather.isVisible = false
+            binding?.buttonGetCurrentWeatherGrey?.isVisible = true
+            binding?.buttonGetCurrentWeather?.isVisible = false
             frameAnimation.stop()
         }, 400)
     }
@@ -106,24 +111,24 @@ class CurrentWeatherFragment : Fragment() {
     //region ========================================= Click Button =========================================
 
     private fun moreDetailsButtonClick() {
-        binding!!.moreDetailsButton.setOnClickListener {
+        binding?.moreDetailsButton?.setOnClickListener {
             (activity as MainActivity).goToWeatherDetail()
         }
     }
 
     private fun getWeatherButtonClick() {
-        binding!!.buttonGetCurrentWeather.isEnabled = false
+        binding?.buttonGetCurrentWeather?.isEnabled = false
         buttonClickAnimation()
         initProgressBar()
         getCurrentWeatherByCurrentLocation(cityName)
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (binding != null) {
-                binding!!.buttonGetCurrentWeather.isEnabled = true
-                binding!!.buttonGetCurrentWeatherGrey.isVisible = false
-                binding!!.buttonGetCurrentWeather.isVisible = true
-            }
-        }, 4000)
+
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(4000)
+            binding?.buttonGetCurrentWeather?.isEnabled = true
+            binding?.buttonGetCurrentWeatherGrey?.isVisible = false
+            binding?.buttonGetCurrentWeather?.isVisible = true
+        }
     }
 
     //endregion
@@ -134,62 +139,32 @@ class CurrentWeatherFragment : Fragment() {
         if (cityName != "") {
             viewModel.getWeatherStackData(cityName)
 
-            binding!!.cityName.text = "City : $cityName"
+            binding?.cityName?.text = "City : $cityName"
             viewModel.setLocationLiveData(cityName)
 
             viewModel.weatherStackLiveData.observe(viewLifecycleOwner, { weatherStackData ->
                 Log.i("getCurrentWeather", "${weatherStackData.current.temperature}")
                 Log.i("getCurrentWeather", "${weatherStackData.current.humidity}")
 
-                binding!!.weatherDescription.text = weatherStackData.current.weather_descriptions[0]
-                binding!!.temperatureValue.text = "${weatherStackData.current.temperature} °C"
-                binding!!.windValue.text = "${weatherStackData.current.wind_speed} km/h"
-                binding!!.humidityValue.text = "${weatherStackData.current.humidity} %"
+                binding?.weatherDescription?.text = weatherStackData.current.weather_descriptions[0]
+                binding?.temperatureValue?.text = "${weatherStackData.current.temperature} °C"
+                binding?.windValue?.text = "${weatherStackData.current.wind_speed} km/h"
+                binding?.humidityValue?.text = "${weatherStackData.current.humidity} %"
 
-                Glide.with(this)
-                    .load(weatherStackData.current.weather_icons[0])
-                    .centerCrop()
-                    .into(binding!!.weatherIcon)
-                binding!!.weatherIcon.visibility = View.VISIBLE
-                binding!!.moreDetailsButton.isVisible = true
+                binding?.weatherIcon?.let { icon ->
+                    Glide.with(this)
+                        .load(weatherStackData.current.weather_icons[0])
+                        .centerCrop()
+                        .into(icon)
+                }
+                binding?.weatherIcon?.visibility = View.VISIBLE
+                binding?.moreDetailsButton?.isVisible = true
             })
 
         }
     }
 
     //endregion
-
-    //region ========================================= Get Location =========================================
-
-    override fun onResume() {
-        super.onResume()
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-
-            fusedLocationProvider?.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-
-            fusedLocationProvider?.removeLocationUpdates(locationCallback)
-        }
-    }
 
     //region ========================================= Get Location =========================================
 
@@ -216,8 +191,7 @@ class CurrentWeatherFragment : Fragment() {
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    Manifest.permission.ACCESS_FINE_LOCATION
                 ),
                 REQUEST_LOCATION_PERMISSION
             )
@@ -259,11 +233,9 @@ class CurrentWeatherFragment : Fragment() {
         }
     }
 
-    //endregion
-
 
     private fun getCityFromLatLong(latitude: Double, longitude: Double) {
-        val geocoder = Geocoder(context, Locale.getDefault())
+        val geocoder = Geocoder(context)
         val listOfCitiesName = geocoder.getFromLocation(latitude, longitude, 1)
         if (listOfCitiesName.size > 0) {
             cityName = listOfCitiesName[0].locality
@@ -278,6 +250,36 @@ class CurrentWeatherFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+
+            fusedLocationProvider?.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+
+            fusedLocationProvider?.removeLocationUpdates(locationCallback)
+        }
     }
 
     //endregion
