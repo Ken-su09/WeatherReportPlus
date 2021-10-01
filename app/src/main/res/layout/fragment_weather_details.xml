@@ -241,7 +241,7 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="@+id/wind_dir_title"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/wind_dir_title"
             app:layout_constraintTop_toBottomOf="@+id/wind_dir_title" />
 
